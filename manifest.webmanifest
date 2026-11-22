@@ -1,14 +1,16 @@
 {
   "id": "./",
   "name": "¿En qué se me fue?",
-  "short_name": "Mis gastos",
-  "description": "Controla tus gastos personales de forma sencilla.",
+  "short_name": "¿En qué se me fue?",
+  "description": "Controla ingresos, gastos, presupuestos y metas de ahorro.",
   "lang": "es-MX",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f5f7fb",
-  "theme_color": "#536df3",
+  "background_color": "#f2f7f8",
+  "theme_color": "#087f8c",
   "categories": ["finance", "lifestyle", "utilities"],
-  "icons": [{"src":"./icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+  "icons": [
+    {"src":"./icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
 }
