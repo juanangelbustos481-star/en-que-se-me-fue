@@ -29,8 +29,8 @@ Deno.serve(async (req: Request) => {
       previousMonthSpent: Number(raw.previousMonthSpent) || 0,
       movementCount: Math.max(0, Math.min(10000, Number(raw.movementCount) || 0)),
       topCategories: Array.isArray(raw.topCategories) ? raw.topCategories.slice(0, 5).map((x: any) => ({ category: String(x.category ?? "").slice(0, 40), amount: Number(x.amount) || 0 })) : [],
-      goals: Array.isArray(raw.goals) ? raw.goals.slice(0, 8).map((x: any) => ({ name: String(x.name ?? "").slice(0, 40), target: Number(x.target) || 0, saved: Number(x.saved) || 0 })) : [],
-      upcomingPayments: Array.isArray(raw.upcomingPayments) ? raw.upcomingPayments.slice(0, 8).map((x: any) => ({ name: String(x.name ?? "").slice(0, 40), amount: Number(x.amount) || 0, date: String(x.date ?? "").slice(0, 10), frequency: String(x.frequency ?? "").slice(0, 20) })) : [],
+      goals: Array.isArray(raw.goals) ? raw.goals.slice(0, 8).map((x: any) => ({ target: Number(x.target) || 0, saved: Number(x.saved) || 0 })) : [],
+      upcomingPayments: Array.isArray(raw.upcomingPayments) ? raw.upcomingPayments.slice(0, 8).map((x: any) => ({ amount: Number(x.amount) || 0, date: String(x.date ?? "").slice(0, 10), frequency: String(x.frequency ?? "").slice(0, 20) })) : [],
     };
 
     const model = Deno.env.get("OPENAI_MODEL") || "gpt-6.2-astra";
