@@ -14,12 +14,17 @@ Aplicación web progresiva (PWA) para registrar ingresos y gastos, organizar pre
 - Calendario de movimientos.
 - Respaldo JSON y restauración combinada para evitar borrar movimientos actuales.
 - Exportación CSV, libro Excel y reporte imprimible que puede guardarse como PDF.
+- Reportes automáticos de los últimos siete días o del mes seleccionado, con descarga CSV del periodo.
+- Importación de movimientos CSV y Excel con vista previa, validación y omisión de duplicados.
 - Escáner OCR de tickets mediante Tesseract.js; requiere cargar la librería y revisar manualmente el importe/fecha detectados.
-- Asistente financiero: análisis local básico sin conexión y respuestas generativas opcionales mediante una función segura de Supabase.
+- Asistente financiero: análisis local sin conexión sobre categorías, presupuesto, ahorro, predicción, gastos repetidos, pagos, balance y actividad semanal; respuestas generativas opcionales mediante una función segura de Supabase.
 - Predicción mensual estimada y detector de gastos pequeños repetidos.
+- Alertas inteligentes en la aplicación para presupuesto cercano/superado, gasto diario inusual y pagos próximos.
+- Simulador de ahorro que estima semanas y fecha aproximada para alcanzar una meta según la aportación semanal.
 - Carteras/cuentas con saldo inicial y asignación de movimientos.
 - Estadísticas avanzadas: promedio por compra, días activos, categoría principal y gastos por día de semana.
-- Bloqueo opcional con PIN de seis dígitos en el dispositivo (protección de pantalla, no cifrado de datos).
+- Bloqueo opcional con PIN de seis dígitos y cierre automático tras cinco minutos de inactividad (protección de pantalla, no cifrado de los datos de la app).
+- Respaldo cifrado opcional con AES-256-GCM y derivación de clave PBKDF2; la contraseña no se puede recuperar si se pierde.
 - Metas de ahorro compartidas en Supabase: invitaciones mediante código y aportaciones sincronizadas entre participantes.
 - Modo claro/oscuro y temas de color.
 - Guardado local primero y sincronización con Supabase al recuperar conexión.
@@ -50,9 +55,15 @@ La aplicación ya incluye un análisis local sin conexión. Para habilitar respu
 
 La función envía al modelo únicamente datos agregados (totales, categorías, metas y próximos pagos), no descripciones ni notas de los movimientos.
 
+## Funciones que requieren configuración adicional
+
+- Las metas de ahorro compartidas necesitan ejecutar `supabase/migrations/202611230002_professional_features.sql`.
+- Las respuestas generativas necesitan desplegar la Edge Function y configurar una clave de servidor; el análisis local no requiere esa configuración.
+- El modo familiar para compartir gastos y presupuestos entre varias cuentas todavía no está activado. Requiere un diseño de permisos y una migración independiente de Supabase; no se debe compartir la sesión ni las credenciales entre familiares.
+
 ## Modo sin conexión y respaldo
 
-Los cambios se guardan primero en el navegador. Cuando hay conexión y una sesión anónima válida, se sincronizan con Supabase. El navegador debe conservar sus datos del sitio para mantener el acceso a la copia local y a la sesión anónima. Si se borran los datos del navegador o se cambia de dispositivo, la sesión anónima puede no recuperarse. Descarga respaldos JSON con regularidad y guárdalos en un lugar seguro.
+Los cambios se guardan primero en el navegador. Cuando hay conexión y una sesión anónima válida, se sincronizan con Supabase. El navegador debe conservar sus datos del sitio para mantener el acceso a la copia local y a la sesión anónima. Si se borran los datos del navegador o se cambia de dispositivo, la sesión anónima puede no recuperarse. Descarga respaldos JSON con regularidad y guárdalos en un lugar seguro. También puedes crear un respaldo cifrado con contraseña; conserva esa contraseña por separado porque no existe recuperación automática.
 
 El reconocimiento OCR y la exportación XLSX cargan librerías externas cuando se usan; esas dos operaciones necesitan conexión. La exportación CSV y el registro básico siguen disponibles sin conexión.
 
