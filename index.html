@@ -285,23 +285,32 @@ function renderSmartAlerts(){
 
 let importedPreviewRows=[];
 function csvToRows(textValue){
+ const first=textValue.split(/\r?\n/,1)[0]||'',commas=(first.match(/,/g)||[]).length,semicolons=(first.match(/;/g)||[]).length,delimiter=semicolons>commas?';':',';
  const rows=[];let row=[],cell='',quoted=false;
- for(let i=0;i<textValue.length;i++){const ch=textValue[i],next=textValue[i+1];if(ch==='"'&&quoted&&next==='"'){cell+='"';i++}else if(ch==='"'){quoted=!quoted}else if(ch===','&&!quoted){row.push(cell);cell=''}else if((ch==='\\n'||ch==='\\r')&&!quoted){if(ch==='\\r'&&next==='\\n')i++;row.push(cell);if(row.some(v=>String(v).trim()))rows.push(row);row=[];cell=''}else cell+=ch}
+ for(let i=0;i<textValue.length;i++){
+  const ch=textValue[i],next=textValue[i+1];
+  if(ch==='"'&&quoted&&next==='"'){cell+='"';i++}
+  else if(ch==='"'){quoted=!quoted}
+  else if(ch===delimiter&&!quoted){row.push(cell);cell=''}
+  else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&next==='\n')i++;row.push(cell);if(row.some(v=>String(v).trim()))rows.push(row);row=[];cell=''}
+  else cell+=ch;
+ }
  row.push(cell);if(row.some(v=>String(v).trim()))rows.push(row);return rows;
 }
 function normalizeImportRows(rows){
  if(!rows.length)return [];
- const norm=v=>String(v??'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]/g,'');
- const headers=rows[0].map(norm),find=(names)=>headers.findIndex(h=>names.includes(h));
+ const norm=v=>String(v??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+ const headers=rows[0].map(norm),find=names=>headers.findIndex(h=>names.includes(h));
  const ix={date:find(['fecha','date']),type:find(['tipo','type']),description:find(['descripcion','description','concepto','detalle']),amount:find(['cantidadmxn','cantidad','amount','importe','monto']),category:find(['categoria','category']),note:find(['nota','note','observaciones'])};
  if(ix.amount<0||ix.description<0)throw new Error('El archivo debe incluir columnas de descripción y cantidad.');
  return rows.slice(1).map(row=>{
   const get=k=>ix[k]>=0?String(row[ix[k]]??'').trim():'';
-  let date=get('date');
-  if(/^\\d{1,2}[\\/.]\\d{1,2}[\\/.]\\d{4}$/.test(date)){const p=date.split(/[\\/.]/);date=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')}
-  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))date=today();
+  const rawDate=ix.date>=0?row[ix.date]:'';
+  let date=rawDate instanceof Date?rawDate.toISOString().slice(0,10):typeof rawDate==='number'&&rawDate>20000&&rawDate<80000?new Date(Date.UTC(1899,11,30)+rawDate*86400000).toISOString().slice(0,10):String(rawDate??'').trim();
+  if(/^\d{1,2}[/.]\d{1,2}[/.]\d{4}$/.test(date)){const p=date.split(/[/.]/);date=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date))date=today();
   const rawType=get('type').toLowerCase(),type=rawType.includes('ingreso')||rawType==='income'?'income':'expense';
-  const amount=Number(get('amount').replace(/[$,\\s]/g,''));
+  const amount=Number(get('amount').replace(/[$,\s]/g,''));
   return{date,type,description:get('description').slice(0,100),amount,category:get('category')||'Otros',note:get('note').slice(0,240)};
  }).filter(x=>x.description&&Number.isFinite(x.amount)&&x.amount>0);
 }
@@ -313,7 +322,7 @@ async function handleImportFile(file){
   else{
    const ok=await loadExternalScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',()=>!!window.XLSX);
    if(!ok||!window.XLSX)throw new Error('No se pudo cargar el lector de Excel. Prueba con CSV.');
-   const data=await file.arrayBuffer(),wb=XLSX.read(data,{type:'array'}),sheet=wb.Sheets[wb.SheetNames[0]];
+   const data=await file.arrayBuffer(),wb=XLSX.read(data,{type:'array',cellDates:true}),sheet=wb.Sheets[wb.SheetNames[0]];
    rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
   }
   importedPreviewRows=normalizeImportRows(rows);
