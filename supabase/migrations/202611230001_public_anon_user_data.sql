@@ -36,4 +36,4 @@ begin
   if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_app_data' and policyname='anon_session_delete_own_data_restrictive') then
     execute 'create policy anon_session_delete_own_data_restrictive on public.user_app_data as restrictive for delete to authenticated using (auth.uid() = user_id)';
   end if;
-end $;
+end $$;
