@@ -45,7 +45,7 @@ La aplicación ya incluye un análisis local sin conexión. Para habilitar respu
 
 1. Despliega `supabase/functions/financial-assistant/index.ts` como Edge Function llamada `financial-assistant`.
 2. Configura el secreto del servidor `OPENAI_API_KEY` en Supabase. Opcionalmente define `OPENAI_MODEL`.
-3. Nunca pegues la clave de OpenAI en `index.html), JavaScript del navegador o repositorios públicos.
+3. Nunca pegues la clave de OpenAI en `index.html`, JavaScript del navegador o repositorios públicos.
 4. Si la función no está desplegada o falta el secreto, el asistente continúa usando el análisis local.
 
 La función envía al modelo únicamente datos agregados (totales, categorías, metas y próximos pagos), no descripciones ni notas de los movimientos.
