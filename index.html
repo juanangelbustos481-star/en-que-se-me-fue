@@ -150,6 +150,7 @@ const readLocal=(id=cloudUser?.id||'offline-guest')=>{
 };
 const writeLocal=(id=cloudUser?.id||'offline-guest')=>{try{localStorage.setItem(K+'.'+id,JSON.stringify(tx));localStorage.setItem(BK+'.'+id,String(budget));localStorage.setItem(EXTRA+'.'+id,JSON.stringify(extra))}catch(e){console.warn('No se pudo guardar localmente',e)}};
 const mergeById=(a=[],b=[])=>{const m=new Map();[...a,...b].forEach(x=>{if(x&&x.id!==undefined)m.set(String(x.id),x)});return [...m.values()]};
+const mergeCategories=(a=[],b=[])=>{const m=new Map();[...a,...b].forEach(c=>{if(Array.isArray(c)&&c[0])m.set(String(c[0]).toLowerCase(),c)});return [...m.values()]};
 const save=()=>{const payload={transactions:tx,budget,extra};writeLocal();if(cloudUser)writeLocal('offline-guest');clearTimeout(saveTimer);if(!cloudUser||!cloudReady||!cloudClient)return;saveTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from('user_app_data').upsert({user_id:cloudUser.id,app_data:payload,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;$('cloudStatus').textContent='☁️ Sincronizado'}catch(e){$('cloudStatus').textContent='📴 Guardado localmente';console.error('Error de sincronización:',e)}},500)};
 
 
@@ -176,7 +177,7 @@ async function loadCloudData(){
    extra={...extra,...re};
    for(const k of ['goals','debts','recurring'])extra[k]=mergeById(re[k]||[],extra[k]||[]);
    extra.categoryBudgets={...(cached.extra?.categoryBudgets||{}),...(re.categoryBudgets||{})};
-   extra.customCategories=mergeById(re.customCategories||[],cached.extra?.customCategories||[]);
+   extra.customCategories=mergeCategories(re.customCategories||[],cached.extra?.customCategories||[]);
    cloudReady=true;writeLocal(cloudUser.id);$('cloudStatus').textContent='☁️ Conectado';
    renderAll();renderCalendar();save();
   }else{
@@ -256,7 +257,7 @@ function restoreJson(file){
   const incoming=d.extra||{};
   for(const k of ['goals','debts','recurring'])extra[k]=mergeById(extra[k]||[],incoming[k]||[]);
   extra.categoryBudgets={...(extra.categoryBudgets||{}),...(incoming.categoryBudgets||{})};
-  extra.customCategories=mergeById(extra.customCategories||[],incoming.customCategories||[]);
+  extra.customCategories=mergeCategories(extra.customCategories||[],incoming.customCategories||[]);
   save();renderAll();renderCalendar();toast('Respaldo combinado correctamente.');
  }catch(e){toast('No se pudo restaurar: archivo inválido.')}};
  reader.readAsText(file);
