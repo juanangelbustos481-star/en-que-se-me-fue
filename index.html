@@ -212,7 +212,7 @@ function openModal(title,fields,action){$('modalTitle').textContent=title;$('mod
 function closeModal(){$('modal').classList.remove('open');modalAction=null}
 function val(n){return $('f_'+n)?.value??''}
 function saveModal(){if(!modalAction)return;const ok=modalAction();if(ok!==false){save();closeModal();renderAll();toast('¡Listo! Se guardó correctamente.')}}
-function movementForm(type='expense',item=null){const cats=type==='income'?['Salario','Venta','Regalo','Beca','Otro']:allCats().map(c=>c[0]);openModal(item?'Editar movimiento':type==='income'?'Nuevo ingreso':'Nuevo gasto',[field('Tipo','type','select',type,{options:['expense','income']}),field('Descripción','description','text',item?.description||'',{placeholder:'Ej. Supermercado'}),field('Cantidad (MXN)','amount','number',item?.amount||'',{min:'.01',step:'0.01'}),field('Categoría','category','select',item?.category||cats[0],{options:cats}),field('Fecha','date','date',item?.date||today()),field('Nota (opcional)','note','text',item?.note||'',{required:false})],()=>{const t=val('type'),amount=Number(val('amount'));if(!val('description').trim()||!Number.isFinite(amount)||amount<=0||!val('date')){toast('Revisa la descripción, fecha y cantidad.');return false}const obj={id:item?.id||uid(),type:t,description:val('description').trim(),amount,category:val('category'),date:val('date'),note:val('note'),created:item?.created||Date.now()};tx=item?tx.map(x=>x.id===item.id?obj:x):[obj,...tx];return true})}
+function movementForm(type='expense',item=null){const cats=type==='income'?['Salario','Venta','Regalo','Beca','Otro']:allCats().map(c=>c[0]);openModal(item?'Editar movimiento':type==='income'?'Nuevo ingreso':'Nuevo gasto',[field('Tipo','type','select',type,{options:['expense','income']}),field('Descripción','description','text',item?.description||'',{placeholder:'Ej. Supermercado'}),field('Cantidad (MXN)','amount','number',item?.amount||'',{min:'.01',step:'0.01'}),field('Categoría','category','select',item?.category||cats[0],{options:cats}),field('Fecha','date','date',item?.date||today()),field('Nota (opcional)','note','text',item?.note||'',{required:false})],()=>{const t=val('type'),amount=Number(val('amount'));if(!val('description').trim()||!Number.isFinite(amount)||amount<=0||!val('date')){toast('Revisa la descripción, fecha y cantidad.');return false}const obj={id:item?.id||uid(),type:t,description:val('description').trim(),amount,category:val('category'),date:val('date'),note:val('note'),created:item?.created||Date.now()};tx=item?.id?tx.map(x=>x.id===item.id?obj:x):[obj,...tx];return true})}
 function goalForm(item=null){openModal(item?'Editar meta':'Nueva meta de ahorro',[field('Nombre de la meta','name','text',item?.name||'',{placeholder:'Ej. Laptop'}),field('Cantidad objetivo (MXN)','target','number',item?.target||'',{min:'.01',step:'.01'}),field('Cantidad ahorrada (MXN)','saved','number',item?.saved||0,{min:'0',step:'.01'}),field('Fecha objetivo (opcional)','due','date',item?.due||'',{required:false})],()=>{const target=Number(val('target')),saved=Number(val('saved'));if(!val('name').trim()||target<=0||saved<0){toast('Revisa los datos de la meta.');return false}const obj={id:item?.id||uid(),name:val('name').trim(),target,saved,due:val('due')};extra.goals=item?extra.goals.map(x=>x.id===item.id?obj:x):[obj,...extra.goals];return true})}
 function debtForm(item=null){openModal(item?'Editar deuda':'Nueva deuda',[field('Concepto','name','text',item?.name||'',{placeholder:'Ej. Préstamo'}),field('Cantidad pendiente (MXN)','amount','number',item?.amount||'',{min:'.01',step:'.01'}),field('A quién (opcional)','who','text',item?.who||'',{required:false})],()=>{const amount=Number(val('amount'));if(!val('name').trim()||amount<=0){toast('Escribe un concepto y una cantidad válida.');return false}const obj={id:item?.id||uid(),name:val('name').trim(),amount,who:val('who')};extra.debts=item?extra.debts.map(x=>x.id===item.id?obj:x):[obj,...extra.debts];return true})}
 function recurringForm(item=null){openModal(item?'Editar pago':'Nuevo pago recurrente',[field('Nombre del pago','name','text',item?.name||'',{placeholder:'Ej. Internet'}),field('Cantidad (MXN)','amount','number',item?.amount||'',{min:'.01',step:'.01'}),field('Frecuencia','frequency','select',item?.frequency||'Mensual',{options:['Semanal','Quincenal','Mensual','Anual']}),field('Próxima fecha','date','date',item?.date||today())],()=>{const amount=Number(val('amount'));if(!val('name').trim()||amount<=0||!val('date')){toast('Revisa los datos del pago.');return false}const obj={id:item?.id||uid(),name:val('name').trim(),amount,frequency:val('frequency'),date:val('date')};extra.recurring=item?extra.recurring.map(x=>x.id===item.id?obj:x):[obj,...extra.recurring];return true})}
@@ -268,6 +268,88 @@ function renderRecurring(){$('recurringList').innerHTML=extra.recurring.length?e
 function renderCalendar(){const [y,m]=calMonth.split('-').map(Number),first=new Date(y,m-1,1),offset=(first.getDay()+6)%7,days=new Date(y,m,0).getDate(),prevDays=new Date(y,m-1,0).getDate();$('calendarTitle').textContent=first.toLocaleDateString('es-MX',{month:'long',year:'numeric'});let html=['L','M','M','J','V','S','D'].map(d=>'<div class="dayname">'+d+'</div>').join('');for(let i=0;i<42;i++){let n=i-offset+1,dim=n<1||n>days,day=dim?(n<1?prevDays+n:n-days):n,dt=new Date(y,m-1,day);if(n<1)dt=new Date(y,m-2,day);if(n>days)dt=new Date(y,m,day);const key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'),total=sum(tx.filter(x=>x.date===key&&x.type!=='income'));html+='<button class="day '+(dim?'dim ':'')+(key===today()?'today ':'')+(key===selectedDay?'selected':'')+'" data-day="'+key+'">'+day+(total?'<small>'+money(total).replace('$','')+'</small>':'')+'</button>'} $('calendar').innerHTML=html;renderDay()}
 function renderDay(){const rows=tx.filter(x=>x.date===selectedDay).sort((a,b)=>b.created-a.created);$('selectedDateTitle').textContent='Movimientos del '+fmtDate(selectedDay);$('dayMovements').innerHTML=rows.length?rows.map(x=>movementHTML(x)).join(''):'<div class="empty">No hay movimientos en esta fecha.</div>'}
 function setTheme(dark){document.body.classList.toggle('dark',dark);$('theme').textContent=dark?'☀':'☾';localStorage.setItem(THEME,dark?'dark':'light')}
+async function loadExternalScript(src,test){
+ if(test&&test())return true;
+ return new Promise(resolve=>{const el=document.createElement('script');el.src=src;el.async=true;el.onload=()=>resolve(true);el.onerror=()=>resolve(false);document.head.appendChild(el)});
+}
+function assistantStats(){
+ const current=byMonth(month),d=new Date(month+'-02T12:00:00');d.setMonth(d.getMonth()-1);
+ const prevKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+ const spent=sum(current.filter(x=>x.type!=='income')),income=sum(current.filter(x=>x.type==='income')),prev=sum(byMonth(prevKey).filter(x=>x.type!=='income'));
+ const ranked=allCats().map(c=>({category:c[0],amount:sum(current.filter(x=>x.type!=='income'&&x.category===c[0]))})).filter(x=>x.amount>0).sort((a,b)=>b.amount-a.amount);
+ return{month,spent,income,balance:income-spent,budget,previousMonthSpent:prev,topCategories:ranked.slice(0,5),goals:(extra.goals||[]).map(g=>({name:g.name,target:g.target,saved:g.saved})),upcomingPayments:(extra.recurring||[]).slice(0,8).map(p=>({name:p.name,amount:p.amount,date:p.date,frequency:p.frequency})),movementCount:current.length};
+}
+function renderAssistantSummary(){
+ const a=assistantStats();
+ $('assistantSummary').innerHTML=[['Gastos del mes',money(a.spent)],['Ingresos del mes',money(a.income)],['Saldo',money(a.balance)],['Presupuesto',a.budget?money(a.budget):'Sin definir']].map(x=>'<div class="stat-pill">'+safe(x[0])+'<b>'+safe(x[1])+'</b></div>').join('');
+}
+function localAssistantAnswer(question){
+ const a=assistantStats(),q=question.toLowerCase(),top=a.topCategories[0];
+ if(!a.movementCount)return'Todavía no hay movimientos registrados este mes. Añade tus ingresos y gastos para analizar tus hábitos.';
+ if(/categor[ií]a|d[oó]nde.*gast|mayor gasto|gastas m[aá]s/.test(q))return top?'Tu categoría con mayor gasto este mes es '+top.category+' con '+money(top.amount)+'. Revisa esos movimientos para identificar cuáles puedes planear mejor.':'Aún no hay gastos suficientes para identificar una categoría principal.';
+ if(/presupuesto|l[ií]mite/.test(q))return a.budget?'Has registrado '+money(a.spent)+' de un presupuesto de '+money(a.budget)+' ('+Math.round(a.spent/a.budget*100)+'%). '+(a.spent>a.budget?'Ya superaste el límite; revisa tus gastos variables.':'Te quedan '+money(Math.max(0,a.budget-a.spent))+' del límite definido.'):'Todavía no has definido un presupuesto mensual.';
+ if(/ahorr|meta/.test(q))return a.goals.length?a.goals.map(g=>g.name+': '+money(g.saved)+' de '+money(g.target)+' ('+Math.round(g.saved/Math.max(1,g.target)*100)+'%).').join('\n'):'Aún no tienes metas de ahorro. Crea una meta con una cantidad y fecha realistas.';
+ if(/compar|mes pasado|anterior/.test(q))return'Este mes llevas '+money(a.spent)+' en gastos. El mes anterior registraste '+money(a.previousMonthSpent)+'. '+(a.spent>a.previousMonthSpent?'El gasto acumulado actual es mayor.':'El gasto acumulado actual es menor o igual.')+' La comparación depende de tus registros.';
+ return'Este mes: '+money(a.income)+' de ingresos y '+money(a.spent)+' de gastos. '+(top?'La categoría principal es '+top.category+' ('+money(top.amount)+'). ':'')+(a.budget?'Has utilizado '+Math.round(a.spent/Math.max(1,a.budget)*100)+'% de tu presupuesto.':'Define un presupuesto para medir tu avance.');
+}
+function addAssistantMessage(message,kind){
+ const el=document.createElement('div');el.className='assistant-bubble '+(kind==='user'?'user':'');el.textContent=message;$('assistantMessages').appendChild(el);el.scrollIntoView({block:'nearest'});
+}
+async function askAssistant(question){
+ const q=question.trim();if(!q)return;
+ addAssistantMessage(q,'user');$('assistantQuestion').value='';$('assistantSend').disabled=true;$('assistantStatus').textContent='Analizando tus datos…';
+ try{
+  if(cloudClient&&cloudUser&&navigator.onLine){
+   const result=await cloudClient.functions.invoke('financial-assistant',{body:{question:q,summary:assistantStats()}});
+   if(!result.error&&result.data?.answer){addAssistantMessage(result.data.answer);$('assistantStatus').textContent='Respuesta generada por IA.';return}
+   if(result.error)console.warn('Función IA no disponible:',result.error);
+  }
+  addAssistantMessage(localAssistantAnswer(q));
+  $('assistantStatus').textContent='Análisis local. Para activar respuestas generativas, configura la función segura de Supabase.';
+ }catch(e){addAssistantMessage(localAssistantAnswer(q));$('assistantStatus').textContent='Sin conexión con IA; se mostró un análisis local.'}
+ finally{$('assistantSend').disabled=false;renderAssistantSummary()}
+}
+async function exportExcel(){
+ if(!tx.length&&!extra.goals.length&&!extra.recurring.length){toast('No hay datos para exportar.');return}
+ const ok=await loadExternalScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',()=>!!window.XLSX);
+ if(!ok||!window.XLSX){toast('No se pudo cargar Excel; se descargará CSV.');exportCSV();return}
+ const wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(tx.map(x=>({Tipo:x.type==='income'?'Ingreso':'Gasto',Descripción:x.description,Cantidad_MXN:x.amount,Categoría:x.category,Fecha:x.date,Nota:x.note||''}))), 'Movimientos');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet((extra.goals||[]).map(g=>({Meta:g.name,Objetivo_MXN:g.target,Ahorrado_MXN:g.saved,Fecha_objetivo:g.due||''}))), 'Metas');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet((extra.recurring||[]).map(p=>({Pago:p.name,Cantidad_MXN:p.amount,Frecuencia:p.frequency,Próxima_fecha:p.date}))), 'Pagos');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{Mes:month,Ingresos:sum(byMonth(month).filter(x=>x.type==='income')),Gastos:sum(byMonth(month).filter(x=>x.type!=='income')),Presupuesto:budget}]),'Resumen');
+ XLSX.writeFile(wb,'en-que-se-me-fue-'+today()+'.xlsx');toast('Archivo Excel generado.');
+}
+function exportPDF(){
+ const a=assistantStats(),rows=[...tx].sort((x,y)=>y.date.localeCompare(x.date)).map(x=>'<tr><td>'+safe(x.date)+'</td><td>'+safe(x.type==='income'?'Ingreso':'Gasto')+'</td><td>'+safe(x.description)+'</td><td>'+safe(x.category||'')+'</td><td style="text-align:right">'+money(x.amount)+'</td></tr>').join('');
+ const w=window.open('','_blank');if(!w){toast('Permite ventanas emergentes para generar el PDF.');return}
+ w.document.write('<!doctype html><html lang="es"><meta charset="utf-8"><title>Reporte financiero</title><style>body{font:14px Arial;padding:28px;color:#18333b}h1{color:#087f8c}.stats{display:flex;gap:22px;flex-wrap:wrap;margin:18px 0}.stats div{padding:12px;background:#eef7f6;border-radius:10px}table{width:100%;border-collapse:collapse;margin-top:18px}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}th{background:#eaf4f4}</style><h1>¿En qué se me fue?</h1><p>Reporte generado el '+today()+'</p><div class="stats"><div>Ingresos<br><b>'+money(a.income)+'</b></div><div>Gastos<br><b>'+money(a.spent)+'</b></div><div>Saldo<br><b>'+money(a.balance)+'</b></div><div>Presupuesto<br><b>'+(a.budget?money(a.budget):'Sin definir')+'</b></div></div><h2>Movimientos registrados</h2><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Categoría</th><th>Importe</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=()=>window.print()<\\/script></html>');
+ w.document.close();
+}
+function parseReceipt(textValue){
+ const lines=textValue.split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean),totals=lines.filter(x=>/(total|importe|a pagar|monto)/i.test(x));let amount=0;
+ for(const line of totals.reverse()){const vals=[...line.matchAll(/(?:\\$\\s*)?([0-9]{1,3}(?:,[0-9]{3})*\\.[0-9]{2}|[0-9]+\\.[0-9]{2})/g)].map(m=>Number(m[1].replace(/,/g,'')));if(vals.length){amount=vals[vals.length-1];break}}
+ if(!amount){const vals=[...textValue.matchAll(/(?:\\$\\s*)?([0-9]{1,3}(?:,[0-9]{3})*\\.[0-9]{2})/g)].map(m=>Number(m[1].replace(/,/g,'')));amount=Math.max(0,...vals)}
+ const dm=textValue.match(/\\b(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{2,4})\\b/);let date=today();
+ if(dm){let y=Number(dm[3]);if(y<100)y+=2000;date=y+'-'+String(Number(dm[2])).padStart(2,'0')+'-'+String(Number(dm[1])).padStart(2,'0')}
+ const description=lines.find(x=>x.length>3&&!/(total|subtotal|ticket|cajero|fecha|rfc|gracias)/i.test(x))||'Compra (ticket escaneado)';
+ return{amount,date,description:description.slice(0,70),raw:textValue.slice(0,800)};
+}
+async function scanReceipt(file){
+ if(!file)return;$('receiptStatus').textContent='Cargando reconocimiento de texto…';
+ const ok=await loadExternalScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js',()=>!!window.Tesseract);
+ if(!ok||!window.Tesseract){$('receiptStatus').textContent='No se pudo cargar el lector. Registra el gasto manualmente.';return}
+ try{$('receiptStatus').textContent='Leyendo el ticket…';const result=await Tesseract.recognize(file,'spa');const d=parseReceipt(result.data.text||'');$('receiptStatus').textContent=d.amount?'Importe detectado: '+money(d.amount)+'. Revisa los campos antes de guardar.':'No se detectó el total; completa los datos manualmente.';movementForm('expense',{description:d.description,amount:d.amount||'',date:d.date,note:'Texto leído del ticket: '+d.raw.slice(0,240),category:'Otros'})}
+ catch(e){$('receiptStatus').textContent='No se pudo leer el ticket. Registra el gasto manualmente.';console.error(e)}
+}
+function setAccent(value){
+ const v=['teal','blue','violet','orange'].includes(value)?value:'teal';document.body.classList.remove('theme-blue','theme-violet','theme-orange');if(v!=='teal')document.body.classList.add('theme-'+v);localStorage.setItem('enQueSeMeFue.accent',v);
+}
+function checkRecurringNotifications(){
+ if(!('Notification'in window)||Notification.permission!=='granted')return;
+ const now=new Date();now.setHours(0,0,0,0);
+ (extra.recurring||[]).forEach(p=>{if(!p.date)return;const due=new Date(p.date+'T00:00:00'),days=Math.round((due-now)/86400000);if(days<0||days>3)return;const key='recurring-alert-'+p.id+'-'+p.date;if(localStorage.getItem(key))return;new Notification('Pago próximo: '+p.name,{body:'Fecha: '+fmtDate(p.date)+' · '+money(p.amount)});localStorage.setItem(key,'1')});
+}
 function exportCSV(){if(!tx.length){toast('No hay movimientos para exportar.');return}const rows=[['Tipo','Descripción','Cantidad MXN','Categoría','Fecha','Nota'],...tx.map(x=>[x.type==='income'?'Ingreso':'Gasto',x.description,x.amount,x.category,x.date,x.note||''])],csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n'),a=document.createElement('a'),u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='en-que-se-me-fue-movimientos.csv';a.click();URL.revokeObjectURL(u)}
 $('month').value=month;$('categoryFilter').innerHTML='<option value="">Todas las categorías</option>'+[...allCats().map(c=>c[0]),'Salario','Venta','Regalo','Beca','Otro'].map(c=>'<option>'+c+'</option>').join('');setTheme(localStorage.getItem(THEME)==='dark');
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>switchView(b.dataset.view));document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>switchView(b.dataset.goto));
