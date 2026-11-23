@@ -149,7 +149,7 @@ const save=()=>{if(!cloudUser||!cloudReady)return;const payload={transactions:tx
 
 
 const SUPABASE_URL='https://llzxembojxngjevnedcz.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY='PEGA_AQUI_TU_SB_PUBLISHABLE_KEY';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_8rgNOIHld5cZeeQg0VEuig_OpPWh36j';
 let authMode='login';
 function authMessage(msg,bad=false){$('authMessage').textContent=msg;$('authMessage').style.color=bad?'#bd4059':'#087f8c'}
 function setAuthMode(mode){authMode=mode;$('authTabLogin').classList.toggle('active',mode==='login');$('authTabSignup').classList.toggle('active',mode==='signup');$('authNameWrap').classList.toggle('hidden',mode!=='signup');$('authSubmit').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';authMessage('')}
