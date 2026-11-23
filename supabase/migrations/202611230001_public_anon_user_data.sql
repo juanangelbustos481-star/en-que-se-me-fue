@@ -7,7 +7,7 @@ create table if not exists public.user_app_data (
 );
 
 alter table public.user_app_data enable row level security;
-grant select, insert, update, delete on public.user_app_data to authenticated;
+revoke all on public.user_app_data from anon;\ngrant select, insert, update, delete on public.user_app_data to authenticated;
 
 do $$
 begin
