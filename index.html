@@ -150,7 +150,7 @@ const readLocal=(id=cloudUser?.id||'offline-guest')=>{
 };
 const writeLocal=(id=cloudUser?.id||'offline-guest')=>{try{localStorage.setItem(K+'.'+id,JSON.stringify(tx));localStorage.setItem(BK+'.'+id,String(budget));localStorage.setItem(EXTRA+'.'+id,JSON.stringify(extra))}catch(e){console.warn('No se pudo guardar localmente',e)}};
 const mergeById=(a=[],b=[])=>{const m=new Map();[...a,...b].forEach(x=>{if(x&&x.id!==undefined)m.set(String(x.id),x)});return [...m.values()]};
-const save=()=>{const payload={transactions:tx,budget,extra};writeLocal();clearTimeout(saveTimer);if(!cloudUser||!cloudReady||!cloudClient)return;saveTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from('user_app_data').upsert({user_id:cloudUser.id,app_data:payload,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;$('cloudStatus').textContent='☁️ Sincronizado'}catch(e){$('cloudStatus').textContent='📴 Guardado localmente';console.error('Error de sincronización:',e)}},500)};
+const save=()=>{const payload={transactions:tx,budget,extra};writeLocal();if(cloudUser)writeLocal('offline-guest');clearTimeout(saveTimer);if(!cloudUser||!cloudReady||!cloudClient)return;saveTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from('user_app_data').upsert({user_id:cloudUser.id,app_data:payload,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;$('cloudStatus').textContent='☁️ Sincronizado'}catch(e){$('cloudStatus').textContent='📴 Guardado localmente';console.error('Error de sincronización:',e)}},500)};
 
 
 const SUPABASE_URL='https://llzxembojxngjevnedcz.supabase.co';
