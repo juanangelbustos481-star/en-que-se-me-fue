@@ -36,8 +36,8 @@ Dirección: https://juanangelbustos481-star.github.io/en-que-se-me-fue/
 1. Habilita **Anonymous Sign-ins** en Authentication > Providers.
 2. Ejecuta el SQL de `supabase/migrations/202611230001_public_anon_user_data.sql` en el SQL Editor. La migración es aditiva, conserva los registros existentes y agrega políticas que limitan cada fila a `auth.uid() = user_id`.
 3. Ejecuta también `supabase/migrations/202611230002_professional_features.sql` para habilitar metas compartidas, miembros e invitaciones. Esta migración agrega tablas y funciones nuevas; no modifica ni borra movimientos existentes.
-3. La tabla `public.user_app_data` conserva un documento JSON por usuario anónimo. No deshabilites RLS ni crees políticas públicas sin filtro de propietario.
-4. Los datos de sesiones con cuenta creadas antes de habilitar el acceso anónimo no se eliminan. Una sesión anónima nueva tiene otro identificador; conserva una copia de respaldo de los datos de cuentas antiguas antes de dejar de utilizar esas cuentas.
+4. La tabla `public.user_app_data` conserva un documento JSON por usuario anónimo. No deshabilites RLS ni crees políticas públicas sin filtro de propietario.
+5. Los datos de sesiones con cuenta creadas antes de habilitar el acceso anónimo no se eliminan. Una sesión anónima nueva tiene otro identificador; conserva una copia de respaldo de los datos de cuentas antiguas antes de dejar de utilizar esas cuentas.
 
 ## Activar respuestas generativas del asistente
 
