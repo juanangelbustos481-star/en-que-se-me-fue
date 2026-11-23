@@ -106,8 +106,8 @@ body.dark .entry:hover .bubble{background:#244b52}
  .tab{padding:10px 12px;font-size:12px}
 }
 
-.auth-screen{min-height:100vh;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 10% 10%,#d8f4f0,transparent 35%),radial-gradient(circle at 90% 90%,#dcecff,transparent 35%),#edf5f8}.auth-card{width:min(440px,100%);background:#fff;border:1px solid #d7e8eb;border-radius:26px;padding:26px;box-shadow:0 20px 55px #16485b18;color:#153b4a}.auth-logo{width:68px;height:68px;border-radius:20px;background:#e6f7f4;padding:8px;object-fit:contain}.auth-card h1{font-size:24px;margin:14px 0 4px}.auth-card p{color:#68828e;font-size:13px}.auth-tabs{display:flex;gap:8px;margin:18px 0}.auth-tabs button{flex:1;padding:10px;border-radius:12px;background:#edf5f8;color:#315563;font-weight:700}.auth-tabs button.active{background:#d9f5f0;color:#087f8c}.auth-card label{display:grid;gap:6px;margin:12px 0;font-size:12px;font-weight:700;color:#56717c}.auth-card input{padding:12px;border:1px solid #d7e8eb;border-radius:12px;font:inherit;color:#153b4a;background:white}.auth-card .btn{width:100%;margin-top:12px;padding:13px}.auth-message{min-height:20px;margin-top:10px;font-size:12px;color:#087f8c}.auth-user{font-size:12px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.auth-screen.hidden{display:none}body.dark .auth-screen{background:#101f2b}</style></head><body><section id="authScreen" class="auth-screen"><div class="auth-card"><img class="auth-logo" src="./icons/icon.svg" alt="Logo"><h1>¿En qué se me fue?</h1><p>Accede a tus gastos y presupuestos desde tus dispositivos.</p><div class="auth-tabs"><button id="authTabLogin" class="active" type="button">Iniciar sesión</button><button id="authTabSignup" type="button">Crear cuenta</button></div><form id="authForm"><label id="authNameWrap" class="hidden">Nombre<input id="authName" autocomplete="name" maxlength="60" placeholder="Tu nombre"></label><label>Correo electrónico<input id="authEmail" type="email" autocomplete="email" required placeholder="correo@ejemplo.com"></label><label>Contraseña<input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Mínimo 8 caracteres"></label><button class="btn primary" id="authSubmit" type="submit">Iniciar sesión</button><button class="btn ghost" id="authReset" type="button">Olvidé mi contraseña</button><div class="auth-message" id="authMessage" role="status"></div></form><p>Tus registros se guardan asociados a tu cuenta y protegidos por permisos de base de datos.</p></div></section><div class="shell" id="appShell" style="display:none">
-<header class="top"><div class="brand"><img src="./icons/icon.svg" alt="Logo ¿En qué se me fue?"><div><h1>¿En qué se me fue?</h1><p>Tu dinero, más claro. ✨</p></div></div><div class="top-actions"><span class="auth-user" id="authUserLabel"></span><span class="auth-user" id="cloudStatus"></span><button class="btn ghost" id="logoutBtn" style="display:none">Salir</button><button class="btn ghost" id="exportCsv">↓ CSV</button><button class="btn ghost" id="print">▤ Reporte PDF</button><button class="iconbtn" id="theme" aria-label="Cambiar tema">☾</button></div></header>
+.auth-screen{min-height:100vh;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 10% 10%,#d8f4f0,transparent 35%),radial-gradient(circle at 90% 90%,#dcecff,transparent 35%),#edf5f8}.auth-card{width:min(440px,100%);background:#fff;border:1px solid #d7e8eb;border-radius:26px;padding:26px;box-shadow:0 20px 55px #16485b18;color:#153b4a}.auth-logo{width:68px;height:68px;border-radius:20px;background:#e6f7f4;padding:8px;object-fit:contain}.auth-card h1{font-size:24px;margin:14px 0 4px}.auth-card p{color:#68828e;font-size:13px}.auth-tabs{display:flex;gap:8px;margin:18px 0}.auth-tabs button{flex:1;padding:10px;border-radius:12px;background:#edf5f8;color:#315563;font-weight:700}.auth-tabs button.active{background:#d9f5f0;color:#087f8c}.auth-card label{display:grid;gap:6px;margin:12px 0;font-size:12px;font-weight:700;color:#56717c}.auth-card input{padding:12px;border:1px solid #d7e8eb;border-radius:12px;font:inherit;color:#153b4a;background:white}.auth-card .btn{width:100%;margin-top:12px;padding:13px}.auth-message{min-height:20px;margin-top:10px;font-size:12px;color:#087f8c}.auth-user{font-size:12px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.auth-screen.hidden{display:none}body.dark .auth-screen{background:#101f2b}</style></head><body><div class="shell" id="appShell">
+<header class="top"><div class="brand"><img src="./icons/icon.svg" alt="Logo ¿En qué se me fue?"><div><h1>¿En qué se me fue?</h1><p>Tu dinero, más claro. ✨</p></div></div><div class="top-actions"><span class="auth-user" id="cloudStatus">☁️ Conectando…</span><button class="btn ghost" id="exportCsv">↓ CSV</button><button class="btn ghost" id="print">▤ Reporte PDF</button><button class="iconbtn" id="theme" aria-label="Cambiar tema">☾</button></div></header>
 <section class="hero-banner"><div><h2>Tu dinero, en equilibrio. ✨</h2><p>Organiza tus movimientos, descubre tus hábitos y avanza hacia tus metas.</p></div><div class="hero-mark">📈</div></section>
 <section class="welcome"><div><h2 id="greeting">¡Hola! Este es tu resumen 👋</h2><p>Un vistazo a cómo se mueve tu dinero.</p></div><input class="field monthpick" type="month" id="month"></section>
 <section class="cards">
@@ -150,15 +150,72 @@ const save=()=>{if(!cloudUser||!cloudReady)return;const payload={transactions:tx
 
 const SUPABASE_URL='https://llzxembojxngjevnedcz.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_8rgNOIHld5cZeeQg0VEuig_OpPWh36j';
-let authMode='login';
-function authMessage(msg,bad=false){$('authMessage').textContent=msg;$('authMessage').style.color=bad?'#bd4059':'#087f8c'}
-function setAuthMode(mode){authMode=mode;$('authTabLogin').classList.toggle('active',mode==='login');$('authTabSignup').classList.toggle('active',mode==='signup');$('authNameWrap').classList.toggle('hidden',mode!=='signup');$('authSubmit').textContent=mode==='login'?'Iniciar sesión':'Crear cuenta';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';authMessage('')}
-async function loadCloudData(){cloudReady=false;tx=[];budget=0;extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[]};try{const {data,error}=await cloudClient.from('user_app_data').select('app_data').eq('user_id',cloudUser.id).maybeSingle();if(error)throw error;if(data?.app_data){const d=data.app_data;tx=Array.isArray(d.transactions)?d.transactions:[];budget=Number(d.budget)||0;extra={...extra,...(d.extra||{})}}else{const {error:e}=await cloudClient.from('user_app_data').insert({user_id:cloudUser.id,app_data:{transactions:[],budget:0,extra}});if(e)throw e}cloudReady=true;$('appShell').style.display='';$('authScreen').classList.add('hidden');$('authUserLabel').textContent=cloudUser.email||'Cuenta';$('logoutBtn').style.display='';$('cloudStatus').textContent='☁️ Conectado';renderAll();renderCalendar()}catch(e){cloudReady=false;authMessage('No se pudieron cargar tus datos: '+e.message,true);$('authScreen').classList.remove('hidden');$('appShell').style.display='none'}}
-async function startAuth(){if(!window.supabase?.createClient){authMessage('No se pudo cargar Supabase. Recarga la página.',true);return}if(SUPABASE_PUBLISHABLE_KEY.startsWith('PEGA_')){authMessage('Falta configurar la clave pública en el código de GitHub.',true);return}cloudClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const {data:{session}}=await cloudClient.auth.getSession();if(session){cloudUser=session.user;await loadCloudData()}cloudClient.auth.onAuthStateChange(async(_event,session)=>{if(session?.user){cloudUser=session.user;await loadCloudData()}else{cloudUser=null;cloudReady=false;$('appShell').style.display='none';$('authScreen').classList.remove('hidden');$('authUserLabel').textContent='';$('logoutBtn').style.display='none'}})}
-$('authTabLogin').onclick=()=>setAuthMode('login');$('authTabSignup').onclick=()=>setAuthMode('signup');
-$('authForm').onsubmit=async e=>{e.preventDefault();const email=$('authEmail').value.trim(),password=$('authPassword').value,btn=$('authSubmit');btn.disabled=true;authMessage(authMode==='login'?'Verificando cuenta…':'Creando cuenta…');try{if(authMode==='signup'){const {data,error}=await cloudClient.auth.signUp({email,password,options:{data:{full_name:$('authName').value.trim()},emailRedirectTo:location.origin+location.pathname}});if(error)throw error;if(data.session){cloudUser=data.user;await loadCloudData()}else authMessage('Cuenta creada. Revisa tu correo para confirmar y después inicia sesión.')}else{const {data,error}=await cloudClient.auth.signInWithPassword({email,password});if(error)throw error;cloudUser=data.user;await loadCloudData()}}catch(e){authMessage(e.message||'No se pudo completar.',true)}finally{btn.disabled=false}};
-$('authReset').onclick=async()=>{const email=$('authEmail').value.trim();if(!email){authMessage('Escribe primero tu correo.',true);return}const {error}=await cloudClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});authMessage(error?error.message:'Si el correo está registrado, recibirás instrucciones.',!!error)};
-$('logoutBtn').onclick=async()=>{if(cloudClient)await cloudClient.auth.signOut()};
+async function loadCloudData(){
+ cloudReady=false;
+ tx=[];budget=0;extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[]};
+ try{
+  const {data,error}=await cloudClient.from('user_app_data').select('app_data').eq('user_id',cloudUser.id).maybeSingle();
+  if(error)throw error;
+  if(data?.app_data){
+   const d=data.app_data;
+   tx=Array.isArray(d.transactions)?d.transactions:[];
+   budget=Number(d.budget)||0;
+   extra={...extra,...(d.extra||{})};
+  }else{
+   const {error:e}=await cloudClient.from('user_app_data').insert({user_id:cloudUser.id,app_data:{transactions:[],budget:0,extra}});
+   if(e)throw e;
+  }
+  cloudReady=true;
+  $('appShell').style.display='';
+  $('cloudStatus').textContent='☁️ Conectado';
+  renderAll();renderCalendar();
+ }catch(e){
+  cloudReady=false;
+  $('appShell').style.display='';
+  $('cloudStatus').textContent='⚠️ Error de conexión';
+  console.error('Error al cargar datos de Supabase:',e);
+  toast('No se pudieron sincronizar los datos. Revisa la conexión.');
+ }
+}
+async function startAuth(){
+ if(!window.supabase?.createClient){
+  $('cloudStatus').textContent='⚠️ No se pudo cargar Supabase';
+  toast('No se pudo cargar Supabase. Recarga la página.');
+  return;
+ }
+ if(SUPABASE_PUBLISHABLE_KEY.startsWith('PEGA_')){
+  $('cloudStatus').textContent='⚠️ Falta configurar Supabase';
+  toast('Falta configurar la clave pública de Supabase.');
+  return;
+ }
+ try{
+  cloudClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+  const {data:{session}}=await cloudClient.auth.getSession();
+  if(session?.user){
+   cloudUser=session.user;
+   await loadCloudData();
+  }else{
+   const {data,error}=await cloudClient.auth.signInAnonymously();
+   if(error)throw error;
+   cloudUser=data.user;
+   await loadCloudData();
+  }
+  cloudClient.auth.onAuthStateChange((event,session)=>{
+   if(event==='SIGNED_OUT'){
+    cloudUser=null;cloudReady=false;
+    $('cloudStatus').textContent='⚠️ Sesión no disponible';
+   }else if(session?.user&&cloudUser?.id!==session.user.id){
+    cloudUser=session.user;
+    loadCloudData();
+   }
+  });
+ }catch(e){
+  $('cloudStatus').textContent='⚠️ Configura acceso anónimo';
+  $('appShell').style.display='';
+  console.error('No se pudo iniciar la sesión anónima:',e);
+  toast('Activa el acceso anónimo en Supabase para continuar.');
+ }
+}
 
 const allCats=()=>CATS.concat(extra.customCategories||[]),cat=n=>allCats().find(c=>c[0]===n)||CATS[CATS.length-1],byMonth=m=>tx.filter(x=>x.date?.slice(0,7)===m),sum=(a)=>a.reduce((v,x)=>v+Number(x.amount||0),0),fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
 function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2300)}
