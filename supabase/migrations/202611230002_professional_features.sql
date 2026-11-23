@@ -36,10 +36,10 @@ create policy shared_goals_member_read on public.shared_savings_goals for select
 using (exists (select 1 from public.shared_savings_members m where m.goal_id = id and m.user_id = auth.uid()));
 drop policy if exists shared_members_member_read on public.shared_savings_members;
 create policy shared_members_member_read on public.shared_savings_members for select to authenticated
-using (exists (select 1 from public.shared_savings_members m where m.goal_id = goal_id and m.user_id = auth.uid()));
+using (user_id = auth.uid());
 drop policy if exists shared_contributions_member_read on public.shared_savings_contributions;
 create policy shared_contributions_member_read on public.shared_savings_contributions for select to authenticated
-using (exists (select 1 from public.shared_savings_members m where m.goal_id = goal_id and m.user_id = auth.uid()));
+using (exists (select 1 from public.shared_savings_members m where m.goal_id = shared_savings_contributions.goal_id and m.user_id = auth.uid()));
 
 create or replace function public.create_shared_savings_goal(p_name text, p_target numeric, p_due date default null)
 returns table(id uuid, invite_code text)
