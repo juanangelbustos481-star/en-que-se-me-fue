@@ -187,6 +187,7 @@ async function loadCloudData(){
 }
 async function startAuth(){
  $('appShell').style.display='';
+ if(!window.supabase?.createClient&&navigator.onLine)await loadExternalScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',()=>!!window.supabase?.createClient);
  if(!window.supabase?.createClient||SUPABASE_PUBLISHABLE_KEY.startsWith('PEGA_')){
   const local=readLocal('offline-guest');tx=local.transactions;budget=local.budget;extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[],...(local.extra||{})};$('cloudStatus').textContent='📴 Modo local';renderAll();renderCalendar();return;
  }
@@ -298,7 +299,7 @@ function assistantStats(){
  const prevKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
  const spent=sum(current.filter(x=>x.type!=='income')),income=sum(current.filter(x=>x.type==='income')),prev=sum(byMonth(prevKey).filter(x=>x.type!=='income'));
  const ranked=allCats().map(c=>({category:c[0],amount:sum(current.filter(x=>x.type!=='income'&&x.category===c[0]))})).filter(x=>x.amount>0).sort((a,b)=>b.amount-a.amount);
- return{month,spent,income,balance:income-spent,budget,previousMonthSpent:prev,topCategories:ranked.slice(0,5),goals:(extra.goals||[]).map(g=>({name:g.name,target:g.target,saved:g.saved})),upcomingPayments:(extra.recurring||[]).slice(0,8).map(p=>({name:p.name,amount:p.amount,date:p.date,frequency:p.frequency})),movementCount:current.length};
+ return{month,spent,income,balance:income-spent,budget,previousMonthSpent:prev,topCategories:ranked.slice(0,5),goals:(extra.goals||[]).map(g=>({target:g.target,saved:g.saved})),upcomingPayments:(extra.recurring||[]).slice(0,8).map(p=>({amount:p.amount,date:p.date,frequency:p.frequency})),movementCount:current.length};
 }
 function renderAssistantSummary(){
  const a=assistantStats();
