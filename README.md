@@ -24,4 +24,4 @@ El sitio se publica con GitHub Pages desde la rama `main` y la carpeta `/(root)`
 Dirección: https://juanangelbustos481-star.github.io/en-que-se-me-fue/
 
 ## Privacidad y almacenamiento
-Los movimientos, presupuestos, metas, deudas y recordatorios se guardan en el almacenamiento local del navegador. No se envían a un servidor y no se sincronizan automáticamente entre dispositivos. Si se borran los datos del navegador, se puede perder la información; exporta tus movimientos como respaldo.
+La aplicación crea una sesión anónima automática con Supabase: no solicita correo ni contraseña. Los movimientos, presupuestos, metas, deudas y recordatorios se guardan en la nube asociados al identificador anónimo de cada navegador, con políticas RLS para separar los datos de cada visitante. Si se borran los datos del navegador o se cambia de dispositivo, la sesión anónima puede perderse y no será posible recuperar esos datos; descarga periódicamente un respaldo desde la aplicación. El proyecto debe tener habilitados los inicios de sesión anónimos en Supabase.
