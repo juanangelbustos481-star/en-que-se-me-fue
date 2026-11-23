@@ -23,4 +23,16 @@ begin
   if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_app_data' and policyname='anon_session_delete_own_data') then
     execute 'create policy anon_session_delete_own_data on public.user_app_data for delete to authenticated using (auth.uid() = user_id)';
   end if;
-end $$;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_app_data' and policyname='anon_session_select_own_data_restrictive') then
+    execute 'create policy anon_session_select_own_data_restrictive on public.user_app_data as restrictive for select to authenticated using (auth.uid() = user_id)';
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_app_data' and policyname='anon_session_insert_own_data_restrictive') then
+    execute 'create policy anon_session_insert_own_data_restrictive on public.user_app_data as restrictive for insert to authenticated with check (auth.uid() = user_id)';
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_app_data' and policyname='anon_session_update_own_data_restrictive') then
+    execute 'create policy anon_session_update_own_data_restrictive on public.user_app_data as restrictive for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id)';
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='user_app_data' and policyname='anon_session_delete_own_data_restrictive') then
+    execute 'create policy anon_session_delete_own_data_restrictive on public.user_app_data as restrictive for delete to authenticated using (auth.uid() = user_id)';
+  end if;
+end $;
