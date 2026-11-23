@@ -265,8 +265,29 @@ function renderMovements(){const q=$('search').value.toLowerCase(),t=$('typeFilt
 function renderGoals(){$('goalsList').innerHTML=extra.goals.length?extra.goals.map(g=>{const pct=Math.min(g.saved/g.target*100,100);return '<div class="goal"><div class="goalhead"><b>🎯 '+safe(g.name)+'</b><b>'+Math.round(pct)+'%</b></div><div class="bar"><span style="width:'+pct+'%"></span></div><div class="budgetmeta" style="margin-top:7px"><span>'+money(g.saved)+' ahorrados de '+money(g.target)+'</span><small>'+(g.due?'Meta: '+fmtDate(g.due):'Sin fecha límite')+'</small></div><div class="entrytools"><button class="mini" data-add-saved="'+g.id+'">＋ Añadir ahorro</button><button class="mini" data-edit-goal="'+g.id+'">Editar</button><button class="mini" data-del-goal="'+g.id+'">Eliminar</button></div></div>'}).join(''):'<div class="empty">🌱 Crea tu primera meta y empieza a darle forma a tus ahorros.</div>'}
 function renderDebts(){$('debtsList').innerHTML=extra.debts.length?extra.debts.map(d=>'<div class="entry"><div class="bubble">📒</div><div class="entrymain"><b>'+safe(d.name)+'</b><small>'+(d.who?'Con: '+safe(d.who):'Saldo pendiente')+'</small></div><div class="entryamount negative">'+money(d.amount)+'</div><div class="entrytools"><button class="mini" data-pay-debt="'+d.id+'">Abonar</button><button class="mini" data-edit-debt="'+d.id+'">Editar</button><button class="mini" data-del-debt="'+d.id+'">✕</button></div></div>').join(''):'<div class="empty">🎉 No tienes deudas registradas.</div>'}
 function renderRecurring(){$('recurringList').innerHTML=extra.recurring.length?extra.recurring.map(r=>'<div class="entry"><div class="bubble">🔁</div><div class="entrymain"><b>'+safe(r.name)+'</b><small>'+safe(r.frequency)+' · Próximo: '+fmtDate(r.date)+'</small></div><div class="entryamount">'+money(r.amount)+'</div><div class="entrytools"><button class="mini" data-paid-rec="'+r.id+'">Pagado</button><button class="mini" data-edit-rec="'+r.id+'">Editar</button><button class="mini" data-del-rec="'+r.id+'">✕</button></div></div>').join(''):'<div class="empty">Añade pagos frecuentes para tenerlos presentes. Son recordatorios, no cargos automáticos.</div>';checkRecurringNotifications()}
-function renderCalendar(){const [y,m]=calMonth.split('-').map(Number),first=new Date(y,m-1,1),offset=(first.getDay()+6)%7,days=new Date(y,m,0).getDate(),prevDays=new Date(y,m-1,0).getDate();$('calendarTitle').textContent=first.toLocaleDateString('es-MX',{month:'long',year:'numeric'});let html=['L','M','M','J','V','S','D'].map(d=>'<div class="dayname">'+d+'</div>').join('');for(let i=0;i<42;i++){let n=i-offset+1,dim=n<1||n>days,day=dim?(n<1?prevDays+n:n-days):n,dt=new Date(y,m-1,day);if(n<1)dt=new Date(y,m-2,day);if(n>days)dt=new Date(y,m,day);const key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'),total=sum(tx.filter(x=>x.date===key&&x.type!=='income'));html+='<button class="day '+(dim?'dim ':'')+(key===today()?'today ':'')+(key===selectedDay?'selected':'')+'" data-day="'+key+'">'+day+(total?'<small>'+money(total).replace('$','')+'</small>':'')+'</button>'} $('calendar').innerHTML=html;renderDay()}
-function renderDay(){const rows=tx.filter(x=>x.date===selectedDay).sort((a,b)=>b.created-a.created);$('selectedDateTitle').textContent='Movimientos del '+fmtDate(selectedDay);$('dayMovements').innerHTML=rows.length?rows.map(x=>movementHTML(x)).join(''):'<div class="empty">No hay movimientos en esta fecha.</div>'}
+function renderCalendar(){
+ const [y,m]=calMonth.split('-').map(Number),first=new Date(y,m-1,1),offset=(first.getDay()+6)%7,days=new Date(y,m,0).getDate(),prevDays=new Date(y,m-1,0).getDate();
+ $('calendarTitle').textContent=first.toLocaleDateString('es-MX',{month:'long',year:'numeric'});
+ let html=['L','M','M','J','V','S','D'].map(d=>'<div class="dayname">'+d+'</div>').join('');
+ for(let i=0;i<42;i++){
+  let n=i-offset+1,dim=n<1||n>days,day=dim?(n<1?prevDays+n:n-days):n,dt=new Date(y,m-1,day);
+  if(n<1)dt=new Date(y,m-2,day);if(n>days)dt=new Date(y,m,day);
+  const key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  const total=sum(tx.filter(x=>x.date===key&&x.type!=='income')),due=(extra.recurring||[]).filter(p=>p.date===key).length;
+  const mark=total?money(total).replace('$',''):due?'Pago':'';
+  html+='<button class="day '+(dim?'dim ':'')+(key===today()?'today ':'')+(key===selectedDay?'selected':'')+'" data-day="'+key+'">'+day+(mark?'<small>'+safe(mark)+'</small>':'')+'</button>';
+ }
+ $('calendar').innerHTML=html;renderDay();
+}
+function renderDay(){
+ const rows=tx.filter(x=>x.date===selectedDay).sort((a,b)=>b.created-a.created);
+ const due=(extra.recurring||[]).filter(p=>p.date===selectedDay);
+ $('selectedDateTitle').textContent='Movimientos y pagos del '+fmtDate(selectedDay);
+ const movementHtml=rows.map(x=>movementHTML(x)).join('');
+ const dueHtml=due.map(p=>'<div class="entry"><div class="bubble">🔁</div><div class="entrymain"><b>'+safe(p.name)+'</b><small>Pago recurrente pendiente · '+safe(p.frequency)+'</small></div><div class="entryamount">'+money(p.amount)+'</div></div>').join('');
+ $('dayMovements').innerHTML=movementHtml+dueHtml||'<div class="empty">No hay movimientos ni pagos programados en esta fecha.</div>';
+}
+
 function setTheme(dark){document.body.classList.toggle('dark',dark);$('theme').textContent=dark?'☀':'☾';localStorage.setItem(THEME,dark?'dark':'light')}
 async function loadExternalScript(src,test){
  if(test&&test())return true;
