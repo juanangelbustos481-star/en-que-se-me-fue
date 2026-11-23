@@ -144,76 +144,57 @@ const CATS=[['Comida','🍽️','#0d9b91'],['Transporte','🚌','#3986cf'],['Ent
 const $=id=>document.getElementById(id),money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(Number(n)||0),today=()=>new Date().toISOString().slice(0,10),monthNow=()=>today().slice(0,7),uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tx=[],extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[]},budget=Number(localStorage.getItem(BK)||0),month=monthNow(),calMonth=monthNow(),selectedDay=today(),modalAction=null;
 let cloudUser=null,cloudClient=null,cloudReady=false,saveTimer=null;
-const userKey=key=>key+'.'+(cloudUser?.id||'none');
-const save=()=>{if(!cloudUser||!cloudReady)return;const payload={transactions:tx,budget,extra};localStorage.setItem(userKey(K),JSON.stringify(tx));localStorage.setItem(userKey(BK),String(budget));localStorage.setItem(userKey(EXTRA),JSON.stringify(extra));clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from('user_app_data').upsert({user_id:cloudUser.id,app_data:payload,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;$('cloudStatus').textContent='☁️ Sincronizado'}catch(e){$('cloudStatus').textContent='⚠️ Error de sincronización';console.error(e)}},500)};
+const userKey=key=>key+'.'+(cloudUser?.id||'offline-guest');
+const readLocal=(id=cloudUser?.id||'offline-guest')=>{
+ try{const rows=JSON.parse(localStorage.getItem(K+'.'+id)||'null'),b=localStorage.getItem(BK+'.'+id),ex=JSON.parse(localStorage.getItem(EXTRA+'.'+id)||'null');return{transactions:Array.isArray(rows)?rows:[],budget:b===null?0:Number(b)||0,extra:ex&&typeof ex==='object'?ex:null}}catch{return{transactions:[],budget:0,extra:null}}
+};
+const writeLocal=(id=cloudUser?.id||'offline-guest')=>{try{localStorage.setItem(K+'.'+id,JSON.stringify(tx));localStorage.setItem(BK+'.'+id,String(budget));localStorage.setItem(EXTRA+'.'+id,JSON.stringify(extra))}catch(e){console.warn('No se pudo guardar localmente',e)}};
+const mergeById=(a=[],b=[])=>{const m=new Map();[...a,...b].forEach(x=>{if(x&&x.id!==undefined)m.set(String(x.id),x)});return [...m.values()]};
+const save=()=>{const payload={transactions:tx,budget,extra};writeLocal();clearTimeout(saveTimer);if(!cloudUser||!cloudReady||!cloudClient)return;saveTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from('user_app_data').upsert({user_id:cloudUser.id,app_data:payload,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;$('cloudStatus').textContent='☁️ Sincronizado'}catch(e){$('cloudStatus').textContent='📴 Guardado localmente';console.error('Error de sincronización:',e)}},500)};
 
 
 const SUPABASE_URL='https://llzxembojxngjevnedcz.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_8rgNOIHld5cZeeQg0VEuig_OpPWh36j';
 async function loadCloudData(){
  cloudReady=false;
- tx=[];budget=0;extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[]};
+ const cached=readLocal(cloudUser.id);
+ tx=cached.transactions;budget=cached.budget;
+ extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[],...(cached.extra||{})};
  try{
   const {data,error}=await cloudClient.from('user_app_data').select('app_data').eq('user_id',cloudUser.id).maybeSingle();
   if(error)throw error;
   if(data?.app_data){
-   const d=data.app_data;
-   tx=Array.isArray(d.transactions)?d.transactions:[];
-   budget=Number(d.budget)||0;
-   extra={...extra,...(d.extra||{})};
+   const remote=data.app_data,re=remote.extra||{};
+   tx=mergeById(Array.isArray(remote.transactions)?remote.transactions:[],tx);
+   budget=Number(remote.budget)||budget||0;
+   extra={...extra,...re};
+   for(const k of ['goals','debts','recurring'])extra[k]=mergeById(re[k]||[],extra[k]||[]);
+   extra.categoryBudgets={...(cached.extra?.categoryBudgets||{}),...(re.categoryBudgets||{})};
+   extra.customCategories=mergeById(re.customCategories||[],cached.extra?.customCategories||[]);
+   cloudReady=true;writeLocal(cloudUser.id);$('cloudStatus').textContent='☁️ Conectado';
+   renderAll();renderCalendar();save();
   }else{
-   const {error:e}=await cloudClient.from('user_app_data').insert({user_id:cloudUser.id,app_data:{transactions:[],budget:0,extra}});
-   if(e)throw e;
+   const {error:e}=await cloudClient.from('user_app_data').insert({user_id:cloudUser.id,app_data:{transactions:tx,budget,extra}});
+   if(e)throw e;cloudReady=true;writeLocal(cloudUser.id);$('cloudStatus').textContent='☁️ Conectado';renderAll();renderCalendar();
   }
-  cloudReady=true;
-  $('appShell').style.display='';
-  $('cloudStatus').textContent='☁️ Conectado';
-  renderAll();renderCalendar();
- }catch(e){
-  cloudReady=false;
-  $('appShell').style.display='';
-  $('cloudStatus').textContent='⚠️ Error de conexión';
-  console.error('Error al cargar datos de Supabase:',e);
-  toast('No se pudieron sincronizar los datos. Revisa la conexión.');
- }
+ }catch(e){cloudReady=false;$('cloudStatus').textContent='📴 Modo sin conexión';console.warn('Se usan datos locales:',e);renderAll();renderCalendar()}
 }
 async function startAuth(){
- if(!window.supabase?.createClient){
-  $('cloudStatus').textContent='⚠️ No se pudo cargar Supabase';
-  toast('No se pudo cargar Supabase. Recarga la página.');
-  return;
- }
- if(SUPABASE_PUBLISHABLE_KEY.startsWith('PEGA_')){
-  $('cloudStatus').textContent='⚠️ Falta configurar Supabase';
-  toast('Falta configurar la clave pública de Supabase.');
-  return;
+ $('appShell').style.display='';
+ if(!window.supabase?.createClient||SUPABASE_PUBLISHABLE_KEY.startsWith('PEGA_')){
+  const local=readLocal('offline-guest');tx=local.transactions;budget=local.budget;extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[],...(local.extra||{})};$('cloudStatus').textContent='📴 Modo local';renderAll();renderCalendar();return;
  }
  try{
   cloudClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
   const {data:{session}}=await cloudClient.auth.getSession();
-  if(session?.user){
-   cloudUser=session.user;
-   await loadCloudData();
-  }else{
-   const {data,error}=await cloudClient.auth.signInAnonymously();
-   if(error)throw error;
-   cloudUser=data.user;
-   await loadCloudData();
-  }
+  if(session?.user){cloudUser=session.user;await loadCloudData()}
+  else{const {data,error}=await cloudClient.auth.signInAnonymously();if(error)throw error;cloudUser=data.user;await loadCloudData()}
   cloudClient.auth.onAuthStateChange((event,session)=>{
-   if(event==='SIGNED_OUT'){
-    cloudUser=null;cloudReady=false;
-    $('cloudStatus').textContent='⚠️ Sesión no disponible';
-   }else if(session?.user&&cloudUser?.id!==session.user.id){
-    cloudUser=session.user;
-    loadCloudData();
-   }
+   if(event==='SIGNED_OUT'){cloudUser=null;cloudReady=false;$('cloudStatus').textContent='📴 Datos locales disponibles'}
+   else if(session?.user&&cloudUser?.id!==session.user.id){cloudUser=session.user;loadCloudData()}
   });
  }catch(e){
-  $('cloudStatus').textContent='⚠️ Configura acceso anónimo';
-  $('appShell').style.display='';
-  console.error('No se pudo iniciar la sesión anónima:',e);
-  toast('Activa el acceso anónimo en Supabase para continuar.');
+  const local=readLocal('offline-guest');tx=local.transactions;budget=local.budget;extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[],...(local.extra||{})};cloudUser=null;cloudReady=false;$('cloudStatus').textContent='📴 Modo sin conexión';renderAll();renderCalendar();console.warn('Acceso anónimo no disponible:',e);
  }
 }
 
