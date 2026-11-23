@@ -157,7 +157,13 @@ const SUPABASE_URL='https://llzxembojxngjevnedcz.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_8rgNOIHld5cZeeQg0VEuig_OpPWh36j';
 async function loadCloudData(){
  cloudReady=false;
- const cached=readLocal(cloudUser.id);
+ const cached=readLocal(cloudUser.id),guest=readLocal('offline-guest');
+ cached.transactions=mergeById(cached.transactions,guest.transactions);
+ cached.budget=cached.budget||guest.budget;
+ cached.extra={...(guest.extra||{}),...(cached.extra||{})};
+ for(const k of ['goals','debts','recurring'])cached.extra[k]=mergeById(guest.extra?.[k]||[],cached.extra?.[k]||[]);
+ cached.extra.categoryBudgets={...(guest.extra?.categoryBudgets||{}),...(cached.extra.categoryBudgets||{})};
+ cached.extra.customCategories=mergeById(guest.extra?.customCategories||[],cached.extra.customCategories||[]);
  tx=cached.transactions;budget=cached.budget;
  extra={goals:[],debts:[],recurring:[],categoryBudgets:{},customCategories:[],...(cached.extra||{})};
  try{
@@ -240,9 +246,17 @@ function backupJson(){
 function restoreJson(file){
  if(!file)return;
  const reader=new FileReader();
- reader.onload=()=>{try{const d=JSON.parse(reader.result);if(d.app!=='EnQueSeMeFue'||!Array.isArray(d.transactions)||!d.extra||typeof d.extra!=='object')throw new Error('Formato no válido');
- if(!confirm('Restaurar este respaldo reemplazará los datos actuales de esta aplicación. ¿Continuar?'))return;
- tx=d.transactions.map(x=>({...x,type:x.type||'expense'}));budget=Number(d.budget)||0;extra={goals:[],debts:[],recurring:[],categoryBudgets:{},...d.extra};save();renderAll();toast('Respaldo restaurado correctamente.');
+ reader.onload=()=>{try{
+  const d=JSON.parse(reader.result);
+  if(d.app!=='EnQueSeMeFue'||!Array.isArray(d.transactions)||!d.extra||typeof d.extra!=='object')throw new Error('Formato no válido');
+  if(!confirm('Se combinarán los registros del respaldo con los actuales. No se eliminarán movimientos existentes. ¿Continuar?'))return;
+  tx=mergeById(tx,d.transactions.map(x=>({...x,type:x.type||'expense'})));
+  budget=Number(d.budget)||budget;
+  const incoming=d.extra||{};
+  for(const k of ['goals','debts','recurring'])extra[k]=mergeById(extra[k]||[],incoming[k]||[]);
+  extra.categoryBudgets={...(extra.categoryBudgets||{}),...(incoming.categoryBudgets||{})};
+  extra.customCategories=mergeById(extra.customCategories||[],incoming.customCategories||[]);
+  save();renderAll();renderCalendar();toast('Respaldo combinado correctamente.');
  }catch(e){toast('No se pudo restaurar: archivo inválido.')}};
  reader.readAsText(file);
 }
